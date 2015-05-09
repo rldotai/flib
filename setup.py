@@ -3,23 +3,38 @@
 
 
 try:
-    from setuptools import setup
+    from setuptools import setup, Command
 except ImportError:
-    from distutils.core import setup
+    from distutils.core import setup, Command
 
 
-with open('README.rst') as readme_file:
+class PyTest(Command):
+    user_options = []
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        self.test_args = []
+        self.test_suite = True
+
+    def run(self):
+        import sys
+        import pytest
+        sys.exit(pytest.main(self.test_args))
+
+
+with open('README.md') as readme_file:
     readme = readme_file.read()
 
-with open('HISTORY.rst') as history_file:
+with open('HISTORY.md') as history_file:
     history = history_file.read().replace('.. :changelog:', '')
 
-requirements = [
-    # TODO: put package requirements here
-]
+requirements = []
 
 test_requirements = [
-    # TODO: put package test requirements here
+    'flake8',
+    'pytest==2.6.4',
+    'pytest-cov==1.8',
 ]
 
 setup(
@@ -49,6 +64,6 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
     ],
-    test_suite='tests',
+    cmdclass={'test': PyTest},
     tests_require=test_requirements
 )

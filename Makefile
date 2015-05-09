@@ -49,13 +49,19 @@ coverage:
 	coverage html
 	open htmlcov/index.html
 
-docs:
+docs: doc-md-convert
 	rm -f docs/flib.rst
 	rm -f docs/modules.rst
 	sphinx-apidoc -o docs/ flib
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	open docs/_build/html/index.html
+
+doc-md-convert:
+	pandoc AUTHORS.md -f markdown_github -t rst -o docs/authors.rst
+	pandoc CONTRIBUTING.md -f markdown_github -t rst -o docs/contributing.rst
+	pandoc HISTORY.md -f markdown_github -t rst -o docs/history.rst
+	pandoc README.md -f markdown_github -t rst -o docs/readme.rst
 
 release: clean
 	python setup.py sdist upload
