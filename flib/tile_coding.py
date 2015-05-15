@@ -21,6 +21,29 @@ class TileCoder:
     """
     def __init__(self, n_input: int, n_output: int, n_tiles: int, scale=None, 
                  table_size=2048, random_seed=None):
+        """
+        Initialize the tile coder.
+
+        Initialization proceeds by storing the input arguments and setting the
+        optional arguments if they are unspecified.
+        It then computes the displacement used to offset each separate tiling,
+        and initializes the hashing function.
+
+        Args:
+            n_input (int): The number of inputs to be tiled, per-call.
+            n_output (int): The number of outputs to be returned, per-call.
+                This can also be thought of as the number of tilings.
+            n_tiles (int): The total number of tiles available, that is, the 
+                maximum value of any single entry returned by the coder.
+            scale (np.ndarray, optional): The scaling applied to the input 
+                prior to tiling.
+            table_size (int, optional): The size of the hash table used by the
+                hashing function, `hfunc`.
+            random_seed (int, seq, or np.random.RandomState, optional): The 
+                seed used to initialize random number generation used by the 
+                tile coder.
+        """
+
         self.n_input = n_input
         self.n_output = n_output
         self.n_tiles = n_tiles
@@ -48,6 +71,24 @@ class TileCoder:
 
 
     def apply(self, array):
+        """
+        Map the input array to its tile coding representation.
+
+        Essentially, this proceeds by first getting the integer coordinates of
+        the input array (subject to scaling), then by offsetting the 
+        coordinates according to the displacement vector for each tiling.
+        Then, the displaced coordinates are hashed using `hfunc`, and the 
+        resulting hashed values are summed modulo `n_tiles` to produce the 
+        indices of the active tiles to be used as features.
+
+        Args:
+            array (np.ndarray): The array to be tiled.
+                Must be of length `n_input`, or else an exception is raised.
+
+        Returns:
+            ret (np.ndarray): An array of length `n_output`, whose entries 
+                correspond to the indices of the active tiles.
+        """
         if len(array) != self.n_input:
             raise ValueError("Incompatible array with length", len(array))
         x = np.floor_divide(array, self.scale).astype(np.int)
@@ -57,6 +98,18 @@ class TileCoder:
         return ret 
 
     def __call__(self, array):
+        """
+        Wraps `self.apply`, with slightly different behavior to accomodate
+        multidimensional inputs to allow for tile-coding multiple inputs at
+        the same time.
+
+        Args:
+            array (np.ndarray): The input to be tiled
+
+        Returns:
+            (np.ndarray): Array whose entries correspond to the indices of the
+                active tiles.
+        """
         # Not sure if this is the best way to achieve broadcasting...
         if array.ndim > 1:
             return np.apply_along_axis(self.apply, axis=1, arr=array)
@@ -104,23 +157,13 @@ class SimpleHash:
         self.table = self.random_state.random_integers(0, high, size=n_entries)
 
     def __call__(self, x):
+        """
+        Return the value(s) of the hash table associated with `x`.
+
+        Args:
+            x (int, Seq[int]): the indices of the table entries to look up.
+
+        Returns:
+            int or Array[int]: the value(s) of the hash table associated with `x`
+        """
         return self.table[x % self.n_entries]
-
-
-def sieve(n: int):
-    """
-    Implementation of the Sieve of Eratosthenes algorithm.
-
-    Given an integer `n`, return a list of all primes less than or equal to it.
-    """
-    candidates = np.ones(n)
-    candidates[[0, 1]] = 0
-    for i in range(2, n):
-        if candidates[i] != 0:
-            for j in range(2*i, n, i):
-                candidates[j] = 0
-    return list(np.nonzero(candidates))
-
-def coprime(n: int):
-    """Return a list of all numbers less than `n` that are coprime with `n`."""
-    return [i for i in range(1, n) if gcd(i, n) == 1]
