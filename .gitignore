@@ -1,7 +1,7 @@
 # Temporary files
 *~
 *.swp
-
+*.DS_Store
 # Python-specific .gitignore
 *.py[cod]
 
