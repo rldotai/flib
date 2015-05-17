@@ -1,0 +1,3 @@
+"""
+Implementing various window functions.
+"""
