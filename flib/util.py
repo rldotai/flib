@@ -26,6 +26,12 @@ def coerce(f):
 
     # TODO: complete this
 
-# Add decorator for checking/coercing dimensionality
 
+def ensure_shape(func):
+    """
+    Decorator which ensures arguments passed to the function are of the same
+    shape, in order to avoid unwanted broadcasting.
+    """
+    # TODO: Specify which arguments to check
+    # TODO: Finish this
 

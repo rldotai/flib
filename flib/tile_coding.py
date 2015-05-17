@@ -11,6 +11,7 @@ from fractions import gcd
 from itertools import cycle
 from toolz import take
 
+
 class TileCoder:
     """
     A simple hashed tilecoder, following the documentation for the "UNH CMAC".

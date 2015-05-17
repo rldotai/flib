@@ -3,7 +3,9 @@ Implementation of a feature which maps integers to an array containing
 their binary representation, modulo the length of the array.
 """
 import numpy as np 
+from functools import partial
 from flib.abstract import BinaryFeature
+
 
 class Int2Bin(BinaryFeature):
     """
@@ -19,16 +21,24 @@ class Int2Bin(BinaryFeature):
         `-1` will be represented the same way as `2**length -1`.
     """
     def __init__(self, length: int):
-        super().__init__(length)
-
+        super().__init__(1, length)
         # Precompute the array for converting integers to bit vectors
-        self._array = (1 << np.arange(self.length))
+        self._array = (1 << np.arange(length))
 
-    def __call__(self, x) -> np.ndarray:
-        # TODO: vectorize this properly
-        if not isinstance(x, np.ndarray):
-            x = np.array(x)
-        if x.ndim == 0:
-            return ((x & self._array) > 0).astype(np.uint8)
+        # Create the function to apply to inputs
+        self.apply = partial(self.func, self._array)
+
+    @staticmethod
+    def func(array, x):
+        return ((x & array) > 0)
+
+    def __call__(self, x):
+        # TODO: Add proper vectorization here / as an abstract mixin
+        x = np.array(x)
+        if x.ndim > 0:
+            ret = np.empty(shape=(x.size, self.n_output), dtype=np.uint8)
+            for ix, i in enumerate(x.flat):
+                ret[ix] = self.apply(i)
+            return ret
         else:
-            return ((x[:,np.newaxis] & self._array) > 0).astype(np.uint8)
+            return self.apply(x)

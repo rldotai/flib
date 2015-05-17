@@ -8,10 +8,12 @@ Can be used to represent the tabular case in terms of arrays, for example.
 import numpy as np
 from flib.abstract import UnaryFeature
 
+
 class Int2Unary(UnaryFeature):
     def __init__(self, length):
         self.length = length
         self._array = np.eye(length)
 
     def __call__(self, x):
+        # TODO: Implement using the `apply` style, with `__call__` as dispatch
         return self._array[x]
